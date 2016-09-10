@@ -1,0 +1,9 @@
+class arduinoCodeLee{
+  private:
+    int intANumber, RandomNumber;
+    int randomNumber(int lower, int high);
+}
+
+int randomNumber(int lower, int high){
+  return random(lower,high)
+}
