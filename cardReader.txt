@@ -1,0 +1,152 @@
+125khz reader.txt
+Details
+Activity
+125khz reader.txt
+Sharing Info
+
+General Info
+Type
+Text
+Size
+2 KB (2,476 bytes)
+Storage used
+2 KB (2,476 bytes)
+Location
+Code hardcopys
+Owner
+me
+Modified
+Jun 11, 2016 by me
+Opened
+11:32 PM by me
+Created
+Jun 11, 2016
+Description
+Add a description
+Download permissions
+Viewers can download
+shared with one person, off - only specific people can access.
+
+#include <SoftwareSerial.h>
+SoftwareSerial RFID(2, 3); // RX and TX
+int pirPin = 7;
+int data1 = 0;
+int ok = -1;
+int yes = 13;
+int trig = 11;
+int no = 12;
+
+ 
+// use first sketch in http://wp.me/p3LK05-3Gk to get your tag numbers
+int tag1[14] = {2,48,48,52,50,69,49,68,69,56,70,70,50,3};
+int tag2[14] = {2,52,48,48,48,56,54,67,54,54,66,54,66,3};
+int newtag[14] = { 0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // used for read comparisons
+ 
+void setup()
+{
+  RFID.begin(9600);    // start serial to RFID reader
+  Serial.begin(9600);  // start serial to PC 
+  pinMode(yes, OUTPUT); // for status LEDs
+  pinMode(no, OUTPUT);
+  pinMode(trig, OUTPUT);
+  
+}
+ 
+boolean comparetag(int aa[14], int bb[14])
+{
+  boolean ff = false;
+  int fg = 0;
+  for (int cc = 0 ; cc < 14 ; cc++)
+  {
+    if (aa[cc] == bb[cc])
+    {
+      fg++;
+    }
+  }
+  if (fg == 14)
+  {
+    ff = true;
+  }
+  return ff;
+}
+ 
+void checkmytags() // compares each tag against the tag just read
+{
+  ok = 0; // this variable helps decision-making,
+  // if it is 1 we have a match, zero is a read but no match,
+  // -1 is no read attempt made
+  if (comparetag(newtag, tag1) == true)
+  {
+    ok++;
+  }
+  if (comparetag(newtag, tag2) == true)
+  {
+    ok++;
+  }
+}
+
+
+void readTags()
+{
+  ok = -1;
+  
+  if (RFID.available() > 0) 
+  {
+    // read tag numbers
+    delay(100); // needed to allow time for the data to come in from the serial buffer.
+ 
+    for (int z = 0 ; z < 14 ; z++) // read the rest of the tag
+    {
+      data1 = RFID.read();
+      newtag[z] = data1;
+    }
+    RFID.flush(); // stops multiple reads
+ 
+    // do the tags match up?
+    checkmytags();
+  }
+ 
+  // now do something based on tag type
+  if (ok > 0) // if we had a match
+  {
+    Serial.println("Accepted");
+    digitalWrite(trig, LOW);
+    digitalWrite(yes, HIGH);
+    delay(2000);
+    digitalWrite(trig, HIGH);
+    digitalWrite(yes, LOW);
+    //digitalWrite(yes, HIGH);
+ 
+    ok = -1;
+  }
+  else if (ok == 0) // if we didn't have a match
+  {
+    Serial.println("Rejected");
+    digitalWrite(no, HIGH);
+    delay(1000);
+    digitalWrite(no, LOW);
+ 
+    ok = -1;
+  }
+}
+ 
+void loop()
+{
+  //digitalWrite(trig, HIGH);
+  readTags();
+  if (digitalRead(pirPin) == HIGH) {
+    
+    digitalWrite(trig, LOW);
+    digitalWrite(yes, HIGH);
+    Serial.print("movement");
+    delay(2000);
+    digitalWrite(trig, HIGH);
+    digitalWrite(yes, LOW);
+  
+  }
+  
+}
+
+
+125khz reader.txt
+Open with
